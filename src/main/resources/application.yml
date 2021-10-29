@@ -1,0 +1,8 @@
+spring:
+  zookeeper:
+    address: 127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183
+#  redis:
+#    host: 118.118.116.208
+#    port: 7379
+#    password: abc12366
+#    database: 2
