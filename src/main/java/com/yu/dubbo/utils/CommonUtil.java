@@ -31,8 +31,8 @@ public class CommonUtil {
     private static Logger log = LoggerFactory.getLogger(CommonUtil.class);
     private static KryoPool kryoPool;
 
-    private static final String yyyyMMdd = "yyyy-MM-dd";
-    private static final String yyyyMMhhmmss = "yyyy-MM-dd HH:mm:ss";
+    public static final String yyyyMMdd = "yyyy-MM-dd";
+    public static final String yyyyMMhhmmss = "yyyy-MM-dd HH:mm:ss";
 
     static {
         KryoPool.Builder builder = new KryoPool.Builder(new KryoFactory() {

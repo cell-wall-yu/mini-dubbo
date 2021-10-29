@@ -8,7 +8,7 @@ package com.yu.dubbo.core.protocol;
  */
 public class ResponseDomain {
     /**
-     * 状态码
+     * 状态码 0 成功  5xx 服务端异常   3xx 客户端异常
      */
     private Integer code = 0;
 
