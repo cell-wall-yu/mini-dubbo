@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.yu.dubbo.core.registry.AppServiceRegister,\
+com.yu.dubbo.utils.SpringContextHolder
