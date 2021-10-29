@@ -1,4 +1,4 @@
-package com.yu.dubbo.codec;
+package com.yu.dubbo.core.codec;
 
 import com.yu.dubbo.utils.CommonUtil;
 

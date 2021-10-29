@@ -1,7 +1,7 @@
-package com.yu.dubbo.codec;
+package com.yu.dubbo.core.codec;
 
-import com.yu.dubbo.protocol.RequestDomain;
-import com.yu.dubbo.protocol.ResponseDomain;
+import com.yu.dubbo.core.protocol.RequestDomain;
+import com.yu.dubbo.core.protocol.ResponseDomain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

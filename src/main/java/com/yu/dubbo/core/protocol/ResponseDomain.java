@@ -1,4 +1,4 @@
-package com.yu.dubbo.protocol;
+package com.yu.dubbo.core.protocol;
 
 /**
  * @author Administrator
