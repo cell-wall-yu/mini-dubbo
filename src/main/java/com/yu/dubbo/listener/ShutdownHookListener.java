@@ -21,11 +21,11 @@ public class ShutdownHookListener implements ApplicationListener {
 
     @Override
     public void onApplicationEvent(ApplicationEvent applicationEvent) {
-        log.info("[ShutdownHookListener] listener {}", applicationEvent.getClass().getName());
-
         if (applicationEvent instanceof ContextClosedEvent) {
             // kill -15 ,程序上的优雅关闭，而系统上的关闭无法执行如 kill -9
             RegistryStrategy.destroy();
+            log.info("[ShutdownHookListener] listener {}", applicationEvent.getClass().getName());
+
         }
     }
 }

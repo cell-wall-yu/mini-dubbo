@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Proxy;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,6 +23,8 @@ import java.util.concurrent.Executors;
 public class AppClient {
 
     private static Logger log = LoggerFactory.getLogger(AppClient.class);
+
+    private static ConcurrentHashMap<String, String> customerAddress = new ConcurrentHashMap<>();
 
     // 线程池
     private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -45,8 +49,11 @@ public class AppClient {
 
         // 注册消费者
         log.info("[app-client] registry customerAddress to registry-center: url: {},service: {}", localhostHttpAddress, interfaces.getName());
-        RegistryStrategy.registerConsumer(interfaces.getName(), localhostHttpAddress);
 
+        if (!customerAddress.containsKey(localhostHttpAddress)) {
+            RegistryStrategy.registerConsumer(interfaces.getName(), localhostHttpAddress);
+            customerAddress.put(localhostHttpAddress, interfaces.getName());
+        }
 
         // 缓存type.getName()对应的服务地址
         AppServiceDomain.Provider provider = RegistryStrategy.getProviderFromRegistry(interfaces.getName());
