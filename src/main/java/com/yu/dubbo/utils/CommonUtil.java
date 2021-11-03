@@ -6,6 +6,7 @@ import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
 import com.esotericsoftware.kryo.serializers.CompatibleFieldSerializer;
+import com.yu.dubbo.core.SpringContextHolder;
 import de.javakaffee.kryoserializers.ArraysAsListSerializer;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 import org.slf4j.Logger;

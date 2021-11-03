@@ -4,7 +4,7 @@ import com.yu.dubbo.core.codec.CodecUtil;
 import com.yu.dubbo.core.protocol.RequestDomain;
 import com.yu.dubbo.core.protocol.ResponseDomain;
 import com.yu.dubbo.exception.DubboException;
-import com.yu.dubbo.utils.SpringContextHolder;
+import com.yu.dubbo.core.SpringContextHolder;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -29,8 +29,8 @@ import java.util.List;
  * @projectName mini-dubbo
  * @date 2021/10/29 0029下午 5:14
  */
-public class AppServerHandle extends HttpServlet {
-    private static Logger log = LoggerFactory.getLogger(AppServerHandle.class);
+public class AppServer extends HttpServlet {
+    private static Logger log = LoggerFactory.getLogger(AppServer.class);
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
