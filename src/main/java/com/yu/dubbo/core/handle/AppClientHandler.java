@@ -23,13 +23,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Administrator
  * @title: ycz
  * @projectName mini-dubbo
- * @date 2021/10/29 0029下午 5:20
+ * @date 2021/11/1 0001下午 3:40
  */
-public class AppClientHandle implements Callable {
-    private static Logger log = LoggerFactory.getLogger(AppClientHandle.class);
+public class AppClientHandler implements Callable {
+    private static Logger log = LoggerFactory.getLogger(AppClientHandler.class);
 
     private Class<?> cls;
-    private String customerAddress;
     private Method method;
     private Object[] args;
     /**
@@ -66,16 +65,13 @@ public class AppClientHandle implements Callable {
      * @param appServerAddressList
      */
     public static void cacheAppServerAddress(String serviceClassName, List<String> appServerAddressList) {
-
         if (appServerAddressList == null || appServerAddressList.isEmpty()) {
             log.info("[app-client] remote app-server interface seems to be offline, interface: {}", serviceClassName);
             return;
         }
 
         if (appServerAddressList == null || appServerAddressList.isEmpty()) {
-
             allAppServerServiceAddressList.remove(serviceClassName);
-
             if (customerServerServiceAddreassList.get(serviceClassName) != null) {
                 customerServerServiceAddreassList.remove(serviceClassName);
                 log.info("[app-client] remote app-server interface is offline, interface: {}", serviceClassName);
@@ -84,25 +80,19 @@ public class AppClientHandle implements Callable {
         }
 
         allAppServerServiceAddressList.put(serviceClassName, appServerAddressList);
-
         if (customerServiceNameList.contains(serviceClassName)) {
-
             if (customerServerServiceAddreassList.get(serviceClassName) != null) {
                 if (CommonUtil.equals(customerServerServiceAddreassList.get(serviceClassName), appServerAddressList)) {
                     return;
                 }
             }
-
             customerServerServiceAddreassList.put(serviceClassName, appServerAddressList);
-
             log.info("[app-client] cache remote app-server interface: {}, address: {}", serviceClassName, JSONObject.toJSONString(appServerAddressList));
         }
     }
 
-    public static void registAppClientServiceName(String serviceClassName) {
-
+    public static void registerAppClientServiceName(String serviceClassName) {
         customerServiceNameList.add(serviceClassName);
-
         if (allAppServerServiceAddressList.get(serviceClassName) != null) {
             customerServerServiceAddreassList.put(serviceClassName, allAppServerServiceAddressList.get(serviceClassName));
             log.info("[app-client] cache remote app-server interface: {}, address: {}", serviceClassName, JSONObject.toJSONString(allAppServerServiceAddressList.get(serviceClassName)));
@@ -111,29 +101,19 @@ public class AppClientHandle implements Callable {
 
     private static AtomicInteger atomicIndexDirect = new AtomicInteger(0);
 
-    public AppClientHandle(Class<?> cls, String customerAddress) {
-        this.cls = cls;
-        this.customerAddress = customerAddress;
-    }
-
-    public AppClientHandle(Class<?> proxy, String localhostHttpAddress, Method method, Object[] args) {
+    public AppClientHandler(Class<?> proxy, Method method, Object[] args) {
         this.cls = proxy;
-        this.customerAddress = localhostHttpAddress;
         this.method = method;
         this.args = args;
     }
 
     @Override
-    public Object call() throws Exception {
+    public Object call() {
+        log.info("current thread name: {}", Thread.currentThread().getName());
         RequestDomain appRequestDomain = null;
         ResponseDomain appResponseDomain = null;
         String appServerAddress = null;
-        String status = "success";
-        String bizStatus = "success";
-        int reqLength = 0;
-        int resLength = 0;
         long start = System.currentTimeMillis();
-        long end = 0l;
         try {
             String className = cls.getName();
             String methodName = method.getName();
@@ -169,12 +149,9 @@ public class AppClientHandle implements Callable {
             appRequestDomain.setParamInputs(args);
 
             List<String> appServerAddressList = customerServerServiceAddreassList.get(appRequestDomain.getClassName());
-            if (appServerAddressList == null || appServerAddressList.isEmpty()) {
-                throw new RuntimeException("[rainbow-direct-request] 还没有注册 appServer地址, " + appRequestDomain.getClassName());
-            }
 
             if (appServerAddressList == null || appServerAddressList.isEmpty()) {
-                throw new RuntimeException("[rainbow-direct-request] 没有远程 appServer address, " + appRequestDomain.getClassName());
+                throw new DubboException("[direct-request] 还没有注册 appServer地址, " + appRequestDomain.getClassName());
             }
 
             // 服务提供者集群中轮询调用
@@ -182,7 +159,6 @@ public class AppClientHandle implements Callable {
                 appServerAddress = appServerAddressList.get(0);
             } else {
                 int index = atomicIndexDirect.incrementAndGet();
-
                 if (index > appServerAddressList.size() - 1) {
                     index = 0;
                     atomicIndexDirect.set(index);
@@ -192,10 +168,8 @@ public class AppClientHandle implements Callable {
 
             // 请求参数编码
             byte[] data = CodecUtil.encodeRequest(appRequestDomain);
-            reqLength = data.length;
             // 发送post请求
             byte[] result = HttpPostUtil.request(appServerAddress, null, data);
-            resLength = result.length;
             appResponseDomain = CodecUtil.decodeResponse(result);
 
         } catch (Exception e) {
@@ -204,40 +178,7 @@ public class AppClientHandle implements Callable {
             log.error("客户端异常:{}", e.getMessage());
             throw new DubboException(e.getMessage());
         } finally {
-            end = System.currentTimeMillis();
-            int code = appResponseDomain.getCode();
-            String errorMsg = null;
-            if (code != 0) {
-                status = "fail";
-                bizStatus = "fail";
-                if (code == 200) {
-                    errorMsg = "远程 app-server 响应超时";
-                } else if (code == 501) {
-                    errorMsg = "远程 app-server 端业务异常：" + appResponseDomain.getMessage();
-                } else if (code == 300) {
-                    errorMsg = "app-client 异常：" + appResponseDomain.getMessage();
-                }
-            }
-//            // 记录通信记录
-//            AppClientRequestRecord record = new AppClientRequestRecord();
-//            record.setProviderAddress(appServerAddress);
-//            record.setCustomerAddress(customerAddress);
-//            record.setRequestNo(appRequestDomain.getRequestNo());
-//            record.setStatus(status);
-//            record.setBizStatus(bizStatus);
-//            record.setApiServiceName(appRequestDomain.getClassName());
-//            record.setApiServiceMethod(appRequestDomain.getMethodName());
-//            record.setBizTimeCost(appResponseDomain.getCostTime());
-//            record.setTimeCost((int) (end - start));
-//            record.setRequestByteSize(reqLength);
-//            record.setResponseByteSize(resLength);
-//            record.setErrorMessage(errorMsg);
-//            BridgeRecordUtil.add(record);
-//            if (code == 501) {
-//                throw new BridgeException(errorMsg);
-//            }
-//        }
-
+            long end = System.currentTimeMillis();
             log.info("[app-client] execute done, interface:{}, methodName:{}, cost:{}ms", appRequestDomain.getClassName(), appRequestDomain.getMethodName(), (end - start));
             return appResponseDomain.getResult();
         }

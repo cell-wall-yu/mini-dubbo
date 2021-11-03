@@ -4,7 +4,7 @@ import com.yu.dubbo.core.registry.domain.AppDeploy;
 import com.yu.dubbo.core.registry.domain.AppServiceDomain;
 import com.yu.dubbo.core.registry.domain.URL;
 import com.yu.dubbo.core.registry.zookeeper.ZookeeperRegistry;
-import com.yu.dubbo.utils.SpringContextHolder;
+import com.yu.dubbo.core.SpringContextHolder;
 
 import java.util.List;
 

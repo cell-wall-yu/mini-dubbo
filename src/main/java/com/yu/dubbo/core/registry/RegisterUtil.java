@@ -1,6 +1,6 @@
 package com.yu.dubbo.core.registry;
 
-import com.yu.dubbo.core.handle.AppServerHandle;
+import com.yu.dubbo.core.handle.AppServer;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.util.StringUtils;
 
@@ -16,10 +16,14 @@ public class RegisterUtil {
      *
      * @return
      */
-    public static ServletRegistrationBean customServlet(String AppserverAddress) {
-        if (!StringUtils.isEmpty(AppserverAddress)) {
-            AppServiceRegister.AppserverAddress = AppserverAddress;
+    public static ServletRegistrationBean customServlet(String appserverAddress) {
+        if (!StringUtils.isEmpty(appserverAddress)) {
+            if (appserverAddress.startsWith("/")) {
+                AppServiceRegister.AppserverAddress = appserverAddress;
+            } else {
+                AppServiceRegister.AppserverAddress = "/" + appserverAddress;
+            }
         }
-        return new ServletRegistrationBean(new AppServerHandle(), AppServiceRegister.AppserverAddress);
+        return new ServletRegistrationBean(new AppServer(), AppServiceRegister.AppserverAddress);
     }
 }

@@ -6,7 +6,7 @@ import com.yu.dubbo.core.registry.RegistryType;
 import com.yu.dubbo.core.registry.domain.AppDeploy;
 import com.yu.dubbo.core.registry.domain.AppServiceDomain;
 import com.yu.dubbo.core.registry.domain.URL;
-import com.yu.dubbo.utils.SpringContextHolder;
+import com.yu.dubbo.core.SpringContextHolder;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
