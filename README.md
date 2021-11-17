@@ -3,16 +3,23 @@
 轻量级远程过程调用（RPC）框架,简单配置,使用简单
 
 使用zookeeper作为注册中心
+        注册地址主要是服务提供者的地址（在类上面使用@Provider注解就会注册上去）
+                /mini-dubbo
+                        /app_service
+                                /接口的referance path(com.yu.user.api.UserApi）
+                                        /11.11.12.130:8080/user/自定义服务器监听的地址
 
-继承httpservlet监听指定的uri
+自定义数据协议进行编解码
 
-客户端向指定的uri地址发送请求
+自定义服务端继承httpServlet，处理客户端发送的RPC数据解码后处理本地调用结果编码返回
 
-使用kryo进行对象序列化
-
-服务端监听指定的uri地址将参数解码去服务端调用接口执行并返回编码结果
-
-客户端接受返回值进行解码
+自定义客户端使用jdk代理和反射，获取调用的代理类，方法，参数
+```java
+(T) Proxy.newProxyInstance(AppClient.class.getClassLoader(), new Class<?>[]{interfaces}, (proxy, method, args) -> {
+            AppClientHandler handler = new AppClientHandler(interfaces, method, args);
+            return executor.submit(handler).get();
+        });
+```
 
 服务提供者支持集群部署
 ##使用
@@ -42,7 +49,7 @@ spring:
 ```yaml
 spring:
   application:
-    name: shop-user
+    name: shop-order
   # 注册中心 默认就是zookeeper
   registry: zookeeper
   zookeeper:
