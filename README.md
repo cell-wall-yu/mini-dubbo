@@ -3,11 +3,14 @@
 轻量级远程过程调用（RPC）框架,简单配置,使用简单
 
 使用zookeeper作为注册中心
-        注册地址主要是服务提供者的地址（在类上面使用@Provider注解就会注册上去）
-                /mini-dubbo
-                        /app_service
-                                /接口的referance path(com.yu.user.api.UserApi）
-                                        /11.11.12.130:8080/user/自定义服务器监听的地址
+
+注册地址主要是服务提供者的地址（在类上面使用@Provider注解就会注册上去）
+
+zookeeper中的path
+/mini-dubbo/app_service/接口的referance path(com.yu.user.api.UserApi）/provider/(接口服务地址)11.11.12.130:8080/user/自定义服务器监听的地址
+
+![image](https://user-images.githubusercontent.com/57479461/142148532-e8c0cc00-778f-4e2a-92f3-0380e81a0f6a.png)
+
 
 自定义数据协议进行编解码
 
