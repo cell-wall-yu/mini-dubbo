@@ -1,6 +1,6 @@
 package com.yu.dubbo.core.handle;
 
-import com.yu.dubbo.core.SpringContextHolder;
+import com.yu.dubbo.utils.SpringContextHolder;
 import com.yu.dubbo.core.codec.CodecUtil;
 import com.yu.dubbo.core.protocol.RequestDomain;
 import com.yu.dubbo.core.protocol.ResponseDomain;
@@ -123,9 +123,9 @@ public class AppServer extends HttpServlet {
                 }
 
                 if (appRequestDomain != null) {
-                    log.info("[app-server] execute done, class: {}, method: {}, cost: {}ms ", appRequestDomain.getClassName(), appRequestDomain.getMethodName(), (end - start));
+                    log.info("[app-server] execute done, from client ip: {}, class: {}, method: {}, cost: {}ms ", req.getRemoteAddr(), appRequestDomain.getClassName(), appRequestDomain.getMethodName(), (end - start));
                 } else {
-                    log.info("[app-server] cost: {}ms ", (end - start));
+                    log.info("[app-server] from client ip: {}, cost: {}ms ", req.getRemoteAddr(), (end - start));
                 }
             }
         } catch (Exception e) {

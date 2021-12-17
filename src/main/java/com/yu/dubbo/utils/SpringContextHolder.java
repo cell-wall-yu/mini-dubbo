@@ -1,4 +1,4 @@
-package com.yu.dubbo.core;
+package com.yu.dubbo.utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

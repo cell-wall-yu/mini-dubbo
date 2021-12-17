@@ -1,7 +1,7 @@
 package com.yu.dubbo.core.registry.zookeeper;
 
 import com.alibaba.fastjson.JSONObject;
-import com.yu.dubbo.core.SpringContextHolder;
+import com.yu.dubbo.utils.SpringContextHolder;
 import com.yu.dubbo.core.registry.RegistryFactory;
 import com.yu.dubbo.core.registry.RegistryType;
 import com.yu.dubbo.core.registry.domain.AppDeploy;
@@ -313,12 +313,12 @@ public class ZookeeperRegistry extends RegistryFactory {
                 public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
                     switch (event.getType()) {
                         case NODE_ADDED:
-                            log.info("NODE_ADDED" + event.getData().getPath());
+                            log.info("[app-client] add listen: {}", event.getData().getPath());
                             zkNotify(event.getData().getPath().substring((RegistryType.AppService.getPath() + "/").length(), event.getData().getPath().indexOf("/provider")), NODE_ADDED,
                                     null);
                             break;
                         case NODE_REMOVED:
-                            log.info("NODE_REMOVED" + event.getData().getPath());
+                            log.info("[app-client] add listen: {}" + event.getData().getPath());
                             String provider = URLDecoder.decode(event.getData().getPath().substring((event.getData().getPath().indexOf("/provider")) + "/provider/".length(), event.getData().getPath().length()), "utf-8");
                             zkNotify(event.getData().getPath().substring((RegistryType.AppService.getPath() + "/").length(), event.getData().getPath().indexOf("/provider")), NODE_REMOVED,
                                     provider);

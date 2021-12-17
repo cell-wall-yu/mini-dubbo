@@ -3,7 +3,7 @@ package com.yu.dubbo.core.registry;
 
 import com.alibaba.fastjson.JSONObject;
 import com.yu.dubbo.annotation.Provider;
-import com.yu.dubbo.core.SpringContextHolder;
+import com.yu.dubbo.utils.SpringContextHolder;
 import com.yu.dubbo.core.registry.domain.AppDeploy;
 import com.yu.dubbo.utils.CommonUtil;
 import org.slf4j.Logger;
@@ -33,11 +33,10 @@ public class AppServiceRegister implements ApplicationContextAware {
             beanNames.add(entry.getKey());
         }
         if (StringUtils.isEmpty(SpringContextHolder.getProperties("spring.application.name")) || StringUtils.isEmpty(SpringContextHolder.getProperties("server.port"))) {
-            throw new RuntimeException("请检查应用名{spring.application.name}和端口号{server.port}");
+            throw new RuntimeException("please check server name{spring.application.name} and port{server.port}");
         }
 
-        AppserverAddress = "/" + SpringContextHolder.getProperties("spring.application.name") + AppserverAddress;
-        String localhostHttpAddress = CommonUtil.getLocalServerAddress() + AppserverAddress;
+        String providerAddress = CommonUtil.getLocalServerAddress() + "/" + SpringContextHolder.getProperties("spring.application.name") + AppserverAddress;
 
         for (String beanName : beanNames) {
             if (beanName.indexOf("org.springframework") != -1) {
@@ -66,8 +65,8 @@ public class AppServiceRegister implements ApplicationContextAware {
                     if (cls.getName().startsWith("private")) {
                         throw new RuntimeException("接口名不能以private开头 ");
                     }
-                    log.info("[app-server] registry service to registry-center: {}, url: {}", cls.getName(), localhostHttpAddress);
-                    RegistryStrategy.registerProvider(cls.getName(), localhostHttpAddress);
+                    log.info("[app-server] registry providerAddress to registry-center: {}, url: {}", cls.getName(), providerAddress);
+                    RegistryStrategy.registerProvider(cls.getName(), providerAddress);
                 }
             }
         }

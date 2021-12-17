@@ -1,7 +1,7 @@
 package com.yu.dubbo.core.handle;
 
 import com.yu.dubbo.annotation.Reference;
-import com.yu.dubbo.core.SpringContextHolder;
+import com.yu.dubbo.utils.SpringContextHolder;
 import com.yu.dubbo.core.registry.RegistryStrategy;
 import com.yu.dubbo.core.registry.domain.AppServiceDomain;
 import com.yu.dubbo.utils.CommonUtil;
@@ -39,19 +39,18 @@ public class AppClient implements ApplicationContextAware {
     @SuppressWarnings("unchecked")
     public static <T> T proxy(Class<T> interfaces) {
         if (StringUtils.isEmpty(SpringContextHolder.getProperties("spring.application.name")) || StringUtils.isEmpty(SpringContextHolder.getProperties("server.port"))) {
-            throw new RuntimeException("请检查应用名{spring.application.name}和端口号{server.port}");
+            throw new RuntimeException("please check server name{spring.application.name} and port{server.port}");
         }
 
-        String localhostHttpAddress = CommonUtil.getLocalServerAddress() +
-                "?appName=" + SpringContextHolder.getProperties("spring.application.name") + "&service=" +
-                interfaces.getName();
+        String consumerAddress = CommonUtil.getLocalServerAddress() +
+                "/" + SpringContextHolder.getProperties("spring.application.name");
         // 缓存调用接口类型
         AppClientHandler.cacheServiceName(interfaces.getName());
 
         AppServiceDomain.Provider provider = RegistryStrategy.getProviderFromRegistry(interfaces.getName());
         // 注册消费者
-        RegistryStrategy.registerConsumer(interfaces.getName(), localhostHttpAddress);
-        log.info("[app-client] registry customerAddress to registry-center: url: {},service: {}", localhostHttpAddress, interfaces.getName());
+        RegistryStrategy.registerConsumer(interfaces.getName(), consumerAddress);
+        log.info("[app-client] registry customerAddress to registry-center: url: {},service: {}", consumerAddress, interfaces.getName());
         // 缓存type.getName()对应的服务地址
         if (provider != null && provider.getAddressList() != null) {
             AppClientHandler.cacheAppServerAddress(provider.getServiceName(), provider.getAddressList());

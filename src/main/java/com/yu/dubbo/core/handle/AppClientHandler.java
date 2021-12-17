@@ -192,7 +192,7 @@ public class AppClientHandler implements Callable {
             log.error("[app-client] client exception :{}", e.getMessage());
         } finally {
             long end = System.currentTimeMillis();
-            log.info("[app-client] execute done, interface:{}, methodName:{}, cost:{}ms", appRequestDomain.getClassName(), appRequestDomain.getMethodName(), (end - start));
+            log.info("[app-client] execute done, target address:{} interface:{}, methodName:{}, cost:{}ms", appServerAddress, appRequestDomain.getClassName(), appRequestDomain.getMethodName(), (end - start));
             if (0 != appResponseDomain.getCode()) {
                 throw new DubboException(appResponseDomain.getMessage());
             } else {
