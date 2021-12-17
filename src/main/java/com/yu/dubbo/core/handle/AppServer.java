@@ -1,10 +1,9 @@
 package com.yu.dubbo.core.handle;
 
+import com.yu.dubbo.core.SpringContextHolder;
 import com.yu.dubbo.core.codec.CodecUtil;
 import com.yu.dubbo.core.protocol.RequestDomain;
 import com.yu.dubbo.core.protocol.ResponseDomain;
-import com.yu.dubbo.exception.DubboException;
-import com.yu.dubbo.core.SpringContextHolder;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -57,7 +56,7 @@ public class AppServer extends HttpServlet {
                 appRequestDomain = CodecUtil.decodeRequest(requestData);
 
                 if (appRequestDomain.getClassName() == null) {
-                    throw new RuntimeException("待执行的业务ClassName不能为空");
+                    throw new RuntimeException("[app-server] class does not exist");
                 }
                 String className = appRequestDomain.getClassName();
                 String methodName = appRequestDomain.getMethodName();
@@ -80,11 +79,11 @@ public class AppServer extends HttpServlet {
                     method = ReflectionUtils.findMethod(cls, methodName);
                 }
                 if (method == null) {
-                    throw new RuntimeException("没到找待执行方法: " + methodName);
+                    throw new RuntimeException("[app-server] method does not exist : " + methodName);
                 }
                 Object targetObject = SpringContextHolder.getBean(cls);
                 if (targetObject == null) {
-                    throw new RuntimeException("没有找到接口实现类");
+                    throw new RuntimeException("[app-server] no interface implementation class found" + cls.getName());
                 }
                 if (paramInputs != null && paramInputs.length > 0) {
                     result = ReflectionUtils.invokeMethod(method, targetObject, paramInputs);
@@ -101,9 +100,8 @@ public class AppServer extends HttpServlet {
                 if (msg != null && !msg.matches("\\s*")) {
                     appResponseDomain.setMessage(msg);
                 } else {
-                    appResponseDomain.setMessage("业务执行异常");
+                    appResponseDomain.setMessage("[app-server] service exception");
                 }
-                throw new DubboException("业务执行异常" + e.getMessage());
             } finally {
                 long end = System.currentTimeMillis();
                 appResponseDomain.setCostTime((int) (end - start));
@@ -141,11 +139,11 @@ public class AppServer extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         DiskFileItemFactory factory = new DiskFileItemFactory();
-        ServletFileUpload sevletFileUpload = new ServletFileUpload(factory);
+        ServletFileUpload servletFileUpload = new ServletFileUpload(factory);
         // 最大5M
-        sevletFileUpload.setSizeMax(5 * 1024 * 1024);
+        servletFileUpload.setSizeMax(5 * 1024 * 1024);
 
-        List<FileItem> fileItems = (List<FileItem>) sevletFileUpload.parseRequest(request);
+        List<FileItem> fileItems = (List<FileItem>) servletFileUpload.parseRequest(request);
 
         // 依次处理每个上传的文件
         byte[] data = null;

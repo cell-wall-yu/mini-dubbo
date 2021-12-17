@@ -17,7 +17,7 @@ import org.springframework.util.StringUtils;
 public class SpringContextHolder implements ApplicationContextAware {
 
     private static Logger log = LoggerFactory.getLogger(SpringContextHolder.class);
-    private static ApplicationContext applicationContext = null;
+    public static ApplicationContext applicationContext = null;
 
     /**
      * 从静态变量applicationContext中取得Bean, 自动转型为所赋值对象的类型.

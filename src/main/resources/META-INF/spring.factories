@@ -1,4 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.yu.dubbo.core.SpringContextHolder,\
 com.yu.dubbo.core.registry.AppServiceRegister,\
+com.yu.dubbo.core.handle.AppClient,\
 com.yu.dubbo.listener.ShutdownHookListener

@@ -34,29 +34,17 @@ public class AppClientHandler implements Callable {
     /**
      * 消费端远程地址缓存
      */
-    private static ConcurrentHashMap<String, List<String>> customerServerServiceAddreassList = new ConcurrentHashMap<String, List<String>>();
+    public static ConcurrentHashMap<String, List<String>> serverServiceAddressList = new ConcurrentHashMap<String, List<String>>();
 
     /**
      * zk中所有地址缓存
      */
-    public static ConcurrentHashMap<String, List<String>> allAppServerServiceAddressList = new ConcurrentHashMap<String, List<String>>();
+    public static ConcurrentHashMap<String, List<String>> allServerServiceAddressList = new ConcurrentHashMap<String, List<String>>();
 
     /**
      * 远程接口名缓存
      */
-    public static List<String> customerServiceNameList = new ArrayList<String>();
-
-
-    /**
-     * 获取直连模式所有服务生产者的地址
-     *
-     * @param interfaceName 接口名
-     * @return
-     * @author Wang Xiaobo 2020年2月13日
-     */
-    public static List<String> getDirectProviderServerAddress(String interfaceName) {
-        return allAppServerServiceAddressList.get(interfaceName);
-    }
+    public static List<String> serviceNameList = new ArrayList<String>();
 
     /**
      * 监听并缓存appServer端接口地址，只缓存声明过 http 直连类型的接口名
@@ -71,31 +59,58 @@ public class AppClientHandler implements Callable {
         }
 
         if (appServerAddressList == null || appServerAddressList.isEmpty()) {
-            allAppServerServiceAddressList.remove(serviceClassName);
-            if (customerServerServiceAddreassList.get(serviceClassName) != null) {
-                customerServerServiceAddreassList.remove(serviceClassName);
+            allServerServiceAddressList.remove(serviceClassName);
+            if (serverServiceAddressList.get(serviceClassName) != null) {
+                serverServiceAddressList.remove(serviceClassName);
                 log.info("[app-client] remote app-server interface is offline, interface: {}", serviceClassName);
             }
             return;
         }
 
-        allAppServerServiceAddressList.put(serviceClassName, appServerAddressList);
-        if (customerServiceNameList.contains(serviceClassName)) {
-            if (customerServerServiceAddreassList.get(serviceClassName) != null) {
-                if (CommonUtil.equals(customerServerServiceAddreassList.get(serviceClassName), appServerAddressList)) {
+        allServerServiceAddressList.put(serviceClassName, appServerAddressList);
+        if (serviceNameList.contains(serviceClassName)) {
+            if (serverServiceAddressList.get(serviceClassName) != null) {
+                if (CommonUtil.equals(serverServiceAddressList.get(serviceClassName), appServerAddressList)) {
                     return;
                 }
             }
-            customerServerServiceAddreassList.put(serviceClassName, appServerAddressList);
+            serverServiceAddressList.put(serviceClassName, appServerAddressList);
             log.info("[app-client] cache remote app-server interface: {}, address: {}", serviceClassName, JSONObject.toJSONString(appServerAddressList));
         }
     }
 
-    public static void registerAppClientServiceName(String serviceClassName) {
-        customerServiceNameList.add(serviceClassName);
-        if (allAppServerServiceAddressList.get(serviceClassName) != null) {
-            customerServerServiceAddreassList.put(serviceClassName, allAppServerServiceAddressList.get(serviceClassName));
-            log.info("[app-client] cache remote app-server interface: {}, address: {}", serviceClassName, JSONObject.toJSONString(allAppServerServiceAddressList.get(serviceClassName)));
+    /**
+     * 缓存接口名
+     *
+     * @param serviceClassName
+     */
+    public static void cacheServiceName(String serviceClassName) {
+        serviceNameList.add(serviceClassName);
+        if (allServerServiceAddressList.get(serviceClassName) != null) {
+            serverServiceAddressList.put(serviceClassName, allServerServiceAddressList.get(serviceClassName));
+            log.info("[app-client] cache remote app-server interface: {}, address: {}", serviceClassName, JSONObject.toJSONString(allServerServiceAddressList.get(serviceClassName)));
+        }
+    }
+
+    /**
+     * 移除下线服务提供的接口地址
+     *
+     * @param serviceClassName
+     * @param address
+     */
+    public static void removeAppServerAddress(String serviceClassName, String address) {
+        if (allServerServiceAddressList.get(serviceClassName) != null) {
+            List<String> addressList = serverServiceAddressList.get(serviceClassName);
+            if (!addressList.isEmpty() && addressList.size() == 1) {
+                serverServiceAddressList.remove(serviceClassName);
+                allServerServiceAddressList.remove(serviceClassName);
+            }
+            if (addressList.size() > 1) {
+                addressList.remove(address);
+            }
+        }
+        if (log.isInfoEnabled()) {
+            log.info("[app-client] remote app-server  interface is offline: {}, address: {}", serviceClassName, address);
         }
     }
 
@@ -109,7 +124,6 @@ public class AppClientHandler implements Callable {
 
     @Override
     public Object call() {
-        log.info("current thread name: {}", Thread.currentThread().getName());
         RequestDomain appRequestDomain = null;
         ResponseDomain appResponseDomain = null;
         String appServerAddress = null;
@@ -148,10 +162,10 @@ public class AppClientHandler implements Callable {
             appRequestDomain.setParamTypeNames(paramTypeNames);
             appRequestDomain.setParamInputs(args);
 
-            List<String> appServerAddressList = customerServerServiceAddreassList.get(appRequestDomain.getClassName());
+            List<String> appServerAddressList = serverServiceAddressList.get(appRequestDomain.getClassName());
 
             if (appServerAddressList == null || appServerAddressList.isEmpty()) {
-                throw new DubboException("[direct-request] 还没有注册 appServer地址, " + appRequestDomain.getClassName());
+                throw new DubboException("[direct-request] not register appServerAddress, " + appRequestDomain.getClassName());
             }
 
             // 服务提供者集群中轮询调用
@@ -175,12 +189,15 @@ public class AppClientHandler implements Callable {
         } catch (Exception e) {
             // 客户端异常
             appResponseDomain = new ResponseDomain(300, e.getMessage(), e.getMessage());
-            log.error("客户端异常:{}", e.getMessage());
-            throw new DubboException(e.getMessage());
+            log.error("[app-client] client exception :{}", e.getMessage());
         } finally {
             long end = System.currentTimeMillis();
             log.info("[app-client] execute done, interface:{}, methodName:{}, cost:{}ms", appRequestDomain.getClassName(), appRequestDomain.getMethodName(), (end - start));
-            return appResponseDomain.getResult();
+            if (0 != appResponseDomain.getCode()) {
+                throw new DubboException(appResponseDomain.getMessage());
+            } else {
+                return appResponseDomain.getResult();
+            }
         }
     }
 }

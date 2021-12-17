@@ -1,15 +1,18 @@
 package com.yu.dubbo.core.registry.zookeeper;
 
 import com.alibaba.fastjson.JSONObject;
+import com.yu.dubbo.core.SpringContextHolder;
 import com.yu.dubbo.core.registry.RegistryFactory;
 import com.yu.dubbo.core.registry.RegistryType;
 import com.yu.dubbo.core.registry.domain.AppDeploy;
 import com.yu.dubbo.core.registry.domain.AppServiceDomain;
 import com.yu.dubbo.core.registry.domain.URL;
-import com.yu.dubbo.core.SpringContextHolder;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
@@ -26,11 +29,16 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import static org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type.NODE_ADDED;
+import static org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type.NODE_REMOVED;
 
 public class ZookeeperRegistry extends RegistryFactory {
 
     private static AtomicBoolean hasInit = new AtomicBoolean(false);
-
+    private static final Lock LOCK = new ReentrantLock();
     private static List<Closeable> closeableList = new ArrayList<Closeable>();
 
     // Curator客户端
@@ -92,7 +100,7 @@ public class ZookeeperRegistry extends RegistryFactory {
                 })
                 .connectString(zkAddress)
                 .sessionTimeoutMs(30000).retryPolicy(retryPolicy) // 设定会话时间以及重连策略
-                .build(); // 建立连接通道
+                .build();// 建立连接通道
         // 启动Curator客户端
         client.start();
     }
@@ -248,6 +256,7 @@ public class ZookeeperRegistry extends RegistryFactory {
 
     @Override
     public void registerProvider(URL url) {
+        LOCK.lock();
         try {
             // 创建服务根目录
             String parentPath = RegistryType.AppService.getPath() + "/" + url.getClassName() + "/provider";
@@ -266,12 +275,16 @@ public class ZookeeperRegistry extends RegistryFactory {
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+        } finally {
+            LOCK.unlock();
         }
 
     }
 
     @Override
     public void registerConsumer(URL url) {
+
+        LOCK.lock();
         try {
             // 创建服务根目录
             String parentPath = RegistryType.AppService.getPath() + "/" + url.getClassName() + "/customer";
@@ -292,10 +305,37 @@ public class ZookeeperRegistry extends RegistryFactory {
 
             client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path);
 
+            // 监听服务
+            String providerPath = RegistryType.AppService.getPath() + "/" + url.getClassName() + "/provider";
+
+            final TreeCache treeCache = new TreeCache(client, providerPath);
+            treeCache.getListenable().addListener(new TreeCacheListener() {
+                public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+                    switch (event.getType()) {
+                        case NODE_ADDED:
+                            log.info("NODE_ADDED" + event.getData().getPath());
+                            zkNotify(event.getData().getPath().substring((RegistryType.AppService.getPath() + "/").length(), event.getData().getPath().indexOf("/provider")), NODE_ADDED,
+                                    null);
+                            break;
+                        case NODE_REMOVED:
+                            log.info("NODE_REMOVED" + event.getData().getPath());
+                            String provider = URLDecoder.decode(event.getData().getPath().substring((event.getData().getPath().indexOf("/provider")) + "/provider/".length(), event.getData().getPath().length()), "utf-8");
+                            zkNotify(event.getData().getPath().substring((RegistryType.AppService.getPath() + "/").length(), event.getData().getPath().indexOf("/provider")), NODE_REMOVED,
+                                    provider);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            });
+            treeCache.start();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+        } finally {
+            LOCK.unlock();
         }
     }
+
 
     @Override
     public void destroy() {

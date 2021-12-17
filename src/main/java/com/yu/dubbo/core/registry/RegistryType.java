@@ -8,11 +8,9 @@ package com.yu.dubbo.core.registry;
  */
 public enum RegistryType {
 
-    AppService("/mini-dubbo/app_service"),
+    AppService("/mini-dubbo/app-service"),
 
-    GateClient("/mini-dubbo/gate_client"),
-
-    AppDeploy("/mini-dubbo/app_deploy");
+    AppDeploy("/mini-dubbo/app-deploy");
 
     private String path;
 

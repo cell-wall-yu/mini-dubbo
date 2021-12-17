@@ -3,9 +3,9 @@ package com.yu.dubbo.core.registry;
 
 import com.alibaba.fastjson.JSONObject;
 import com.yu.dubbo.annotation.Provider;
+import com.yu.dubbo.core.SpringContextHolder;
 import com.yu.dubbo.core.registry.domain.AppDeploy;
 import com.yu.dubbo.utils.CommonUtil;
-import com.yu.dubbo.core.SpringContextHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;

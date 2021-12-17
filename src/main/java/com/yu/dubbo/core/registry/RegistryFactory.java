@@ -1,10 +1,15 @@
 package com.yu.dubbo.core.registry;
 
+import com.yu.dubbo.core.handle.AppClientHandler;
 import com.yu.dubbo.core.registry.domain.AppDeploy;
 import com.yu.dubbo.core.registry.domain.AppServiceDomain;
 import com.yu.dubbo.core.registry.domain.URL;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 
 import java.util.List;
+
+import static org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type.NODE_ADDED;
+import static org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type.NODE_REMOVED;
 
 /**
  * @author Administrator
@@ -26,4 +31,14 @@ public abstract class RegistryFactory {
     public abstract List<AppDeploy> getAppDeployInfo();
 
     public abstract void destroy();
+
+    public void zkNotify(String service, TreeCacheEvent.Type operation, String address) {
+        if (NODE_ADDED.equals(operation)) {
+            if (null != getProviderFromRegistry(service)) {
+                AppClientHandler.cacheAppServerAddress(service, getProviderFromRegistry(service).getAddressList());
+            }
+        } else if (NODE_REMOVED.equals(operation)) {
+            AppClientHandler.removeAppServerAddress(service, address);
+        }
+    }
 }

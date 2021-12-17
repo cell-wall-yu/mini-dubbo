@@ -1,5 +1,6 @@
 package com.yu.dubbo.utils;
 
+import com.yu.dubbo.exception.DubboException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,7 +118,7 @@ public class HttpPostUtil {
             return returns;
         } catch (Exception e) {
             log.error("远程调用出错, url: {}, message:{} ", url, e.getMessage(), e);
-            throw new RuntimeException("网络通信异常");
+            throw new DubboException("网络通信异常");
         }
     }
 }

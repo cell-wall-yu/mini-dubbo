@@ -17,15 +17,17 @@ import java.util.List;
 public class RegistryStrategy {
     private static RegistryFactory registryFactory;
 
-    private final static String registry = SpringContextHolder.getProperties("spring.registry", "zookeeper", String.class);
 
-
-    public static void registerProvider(String service, String address) {
+    static {
+        String registry = SpringContextHolder.getProperties("spring.registry", "zookeeper", String.class);
         if ("zookeeper".equals(registry)) {
             registryFactory = new ZookeeperRegistry();
         } else {
-            throw new RuntimeException("[RegistryFactory] 不支持该类注册中心" + registry);
+            throw new RuntimeException("[RegistryFactory] not support registry " + registry);
         }
+    }
+
+    public static void registerProvider(String service, String address) {
         registryFactory.registerProvider(new URL(service, address));
     }
 
@@ -34,11 +36,6 @@ public class RegistryStrategy {
     }
 
     public static void registerAppDeploy(String appName, AppDeploy appDeploy) {
-        if ("zookeeper".equals(registry)) {
-            registryFactory = new ZookeeperRegistry();
-        }  else {
-            throw new RuntimeException("[RegistryFactory] 不支持该类注册中心" + registry);
-        }
         registryFactory.registerAppDeploy(appName, appDeploy);
     }
 
