@@ -169,16 +169,12 @@ public class AppClientHandler implements Callable {
             }
 
             // 服务提供者集群中轮询调用
-            if (appServerAddressList.size() == 1) {
-                appServerAddress = appServerAddressList.get(0);
+            if (null == AppClient.loadBalance) {
+                throw new RuntimeException("[app-client] loadBalance is null");
             } else {
-                int index = atomicIndexDirect.incrementAndGet();
-                if (index > appServerAddressList.size() - 1) {
-                    index = 0;
-                    atomicIndexDirect.set(index);
-                }
-                appServerAddress = appServerAddressList.get(index);
+                appServerAddress = AppClient.loadBalance.select(appServerAddressList, className, methodName);
             }
+
 
             // 请求参数编码
             byte[] data = CodecUtil.encodeRequest(appRequestDomain);

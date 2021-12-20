@@ -1,10 +1,14 @@
 package com.yu.dubbo.core.handle;
 
 import com.yu.dubbo.annotation.Reference;
-import com.yu.dubbo.utils.SpringContextHolder;
+import com.yu.dubbo.core.cluster.loadbalance.AbstractLoadBalance;
+import com.yu.dubbo.core.cluster.loadbalance.RandomLoadBalance;
+import com.yu.dubbo.core.cluster.loadbalance.RoundRobinLoadBalance;
+import com.yu.dubbo.core.cluster.loadbalance.WeightRoundRobinLoadBalance;
 import com.yu.dubbo.core.registry.RegistryStrategy;
 import com.yu.dubbo.core.registry.domain.AppServiceDomain;
 import com.yu.dubbo.utils.CommonUtil;
+import com.yu.dubbo.utils.SpringContextHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -27,6 +31,7 @@ public class AppClient implements ApplicationContextAware {
 
     private static Logger log = LoggerFactory.getLogger(AppClient.class);
 
+    public static AbstractLoadBalance loadBalance;
     // 线程池
     private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
@@ -81,6 +86,15 @@ public class AppClient implements ApplicationContextAware {
                     field.set(bean, proxy);
                 }
             });
+        }
+
+        String type = SpringContextHolder.getProperties("spring.mini-dubbo.loadbalance");
+        if (RoundRobinLoadBalance.NAME.equals(type)) {
+            AppClient.loadBalance = applicationContext.getAutowireCapableBeanFactory().createBean(RoundRobinLoadBalance.class);
+        } else if (RandomLoadBalance.NAME.equals(type)) {
+            AppClient.loadBalance = applicationContext.getAutowireCapableBeanFactory().createBean(RandomLoadBalance.class);
+        } else if (WeightRoundRobinLoadBalance.NAME.equals(type)) {
+            AppClient.loadBalance = applicationContext.getAutowireCapableBeanFactory().createBean(WeightRoundRobinLoadBalance.class);
         }
     }
 }

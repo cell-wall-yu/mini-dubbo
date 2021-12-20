@@ -36,7 +36,8 @@ public class AppServiceRegister implements ApplicationContextAware {
             throw new RuntimeException("please check server name{spring.application.name} and port{server.port}");
         }
 
-        String providerAddress = CommonUtil.getLocalServerAddress() + "/" + SpringContextHolder.getProperties("spring.application.name") + AppserverAddress;
+        String providerAddress = CommonUtil.getLocalServerAddress() + "/" + SpringContextHolder.getProperties("spring.application.name") + AppserverAddress +
+                "?weight=" + (StringUtils.isEmpty(SpringContextHolder.getProperties("spring.mini-dubbo.weight")) ? 1 : SpringContextHolder.getProperties("spring.mini-dubbo.weight"));
 
         for (String beanName : beanNames) {
             if (beanName.indexOf("org.springframework") != -1) {
