@@ -1,10 +1,7 @@
 package com.yu.dubbo.core.handle;
 
 import com.yu.dubbo.annotation.Reference;
-import com.yu.dubbo.core.cluster.loadbalance.AbstractLoadBalance;
-import com.yu.dubbo.core.cluster.loadbalance.RandomLoadBalance;
-import com.yu.dubbo.core.cluster.loadbalance.RoundRobinLoadBalance;
-import com.yu.dubbo.core.cluster.loadbalance.WeightRoundRobinLoadBalance;
+import com.yu.dubbo.core.cluster.loadbalance.*;
 import com.yu.dubbo.core.registry.RegistryStrategy;
 import com.yu.dubbo.core.registry.domain.AppServiceDomain;
 import com.yu.dubbo.utils.CommonUtil;
@@ -95,6 +92,8 @@ public class AppClient implements ApplicationContextAware {
             AppClient.loadBalance = applicationContext.getAutowireCapableBeanFactory().createBean(RandomLoadBalance.class);
         } else if (WeightRoundRobinLoadBalance.NAME.equals(type)) {
             AppClient.loadBalance = applicationContext.getAutowireCapableBeanFactory().createBean(WeightRoundRobinLoadBalance.class);
+        }else if (ConsistentHashLoadBalance.NAME.equals(type)) {
+            AppClient.loadBalance = applicationContext.getAutowireCapableBeanFactory().createBean(ConsistentHashLoadBalance.class);
         }
     }
 }

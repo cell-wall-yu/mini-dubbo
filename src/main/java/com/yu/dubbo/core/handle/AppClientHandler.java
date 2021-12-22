@@ -172,7 +172,7 @@ public class AppClientHandler implements Callable {
             if (null == AppClient.loadBalance) {
                 throw new RuntimeException("[app-client] loadBalance is null");
             } else {
-                appServerAddress = AppClient.loadBalance.select(appServerAddressList, className, methodName);
+                appServerAddress = AppClient.loadBalance.select(appServerAddressList,appRequestDomain);
             }
 
 

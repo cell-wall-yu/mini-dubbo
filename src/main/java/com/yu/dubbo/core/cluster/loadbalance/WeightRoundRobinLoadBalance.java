@@ -1,5 +1,8 @@
 package com.yu.dubbo.core.cluster.loadbalance;
 
+import com.alibaba.fastjson.JSONObject;
+import com.yu.dubbo.core.protocol.RequestDomain;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,8 +24,8 @@ public class WeightRoundRobinLoadBalance extends AbstractLoadBalance {
     private ConcurrentMap<String, WeightedRoundRobin> methodWeightMap = new ConcurrentHashMap<>();
 
     @Override
-    protected String doSelect(List<String> providers, String interfaceName, String methodName) {
-        String key = interfaceName + "." + methodName;
+    protected String doSelect(List<String> providers, RequestDomain requestDomain) {
+        String key = requestDomain.getClassName() + requestDomain.getMethodName() + JSONObject.toJSONString(requestDomain.getParamTypeNames());
         int length = providers.size(); // Number of invokers
         int maxWeight = 0; // The maximum weight
         int minWeight = Integer.MAX_VALUE; // The minimum weight

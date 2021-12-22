@@ -1,5 +1,7 @@
 package com.yu.dubbo.core.cluster;
 
+import com.yu.dubbo.core.protocol.RequestDomain;
+
 import java.util.List;
 
 public interface LoadBalance {
@@ -10,5 +12,5 @@ public interface LoadBalance {
      * @return
      * @throws Exception
      */
-    String select(List<String> providers, String interfaceName, String methodName) throws Exception;
+    String select(List<String> providers, RequestDomain requestDomain);
 }
