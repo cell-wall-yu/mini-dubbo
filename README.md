@@ -53,6 +53,9 @@ spring:
     name: shop-user
   # 注册中心 默认就是zookeeper
   registry: zookeeper
+  # 提供者权重
+  mini-dubbo:
+    weight: 2
   zookeeper:
     address: 127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183
 ```
@@ -63,6 +66,9 @@ spring:
     name: shop-order
   # 注册中心 默认就是zookeeper
   registry: zookeeper
+  # 消费者消费算法
+  mini-dubbo:
+    loadbalance: roundrobin
   zookeeper:
     address: 127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183
 ```
